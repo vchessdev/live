@@ -1,0 +1,8 @@
+@echo off
+(
+echo #EXTM3U
+echo #EXT-X-VERSION:3
+echo #EXT-X-TARGETDURATION:3
+echo #EXT-X-MEDIA-SEQUENCE:0
+echo #EXT-X-PLAYLIST-TYPE:EVENT
+) > stream.m3u8
