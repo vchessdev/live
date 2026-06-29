@@ -1,15 +1,12 @@
 @echo off
 chcp 65001 >nul
+setlocal enabledelayedexpansion
 
 echo Cleaning old files
 del /q stream.m3u8 2>nul
 del /q segment_*.ts 2>nul
+del /q playlist.m3u 2>nul
 
-echo ==========================================
-echo   STARTING LIVE STREAM
-echo ==========================================
-
-REM Chạy FFmpeg ở cửa sổ riêng
 start "FFmpeg Stream" cmd /k ^
 ffmpeg -hide_banner -loglevel warning ^
   -f gdigrab -framerate 30 -i desktop ^
@@ -28,16 +25,26 @@ timeout /t 5
 
 echo ==========================================
 echo   AUTO PUSH STARTED
-echo   Ctrl+C to stop
 echo ==========================================
 
-REM Auto push loop chính
 :loop
+REM Tạo timestamp
+for /f "delims=" %%A in ('powershell -Command "[System.DateTime]::Now.Ticks"') do set timestamp=%%A
+
 if exist stream.m3u8 (
+    REM Tạo playlist.m3u với timestamp
+    (
+        echo #EXTM3U
+        echo #EXTINF:-1 tvg-chno="1" tvg-name="My Live" tvg-logo="logo.png",My Live Stream
+        echo https://raw.githubusercontent.com/vchessdev/live/main/stream.m3u8?t=!timestamp!
+    ) > playlist.m3u
+    
+    REM Push lên GitHub
     git add -A 2>nul
-    git commit -m "Live %time:~0,8%" --quiet 2>nul
+    git commit -m "Live !timestamp!" --quiet 2>nul
     git push origin main --quiet 2>nul
-    echo [%time:~0,8%] Pushed
+    
+    echo [%time:~0,8%] Pushed ?t=!timestamp!
 )
 
 timeout /t 2 /nobreak >nul
